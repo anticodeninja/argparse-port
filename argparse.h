@@ -302,16 +302,16 @@ extern "C" {
             return PARSER_RESULT_ERROR;
         }
 
-        _parser_add_arg(temp, (parser_base_arg_t*)help_arg, "--help", NULL);
-        _parser_set_alt((parser_base_arg_t*)help_arg, "-h");
-        _parser_set_help((parser_base_arg_t*)help_arg, "show this help message and exit");
-
         temp->last_err = NULL;
         temp->last_err_pos = 0;
         temp->last_err_size = 0;
         temp->help_arg = help_arg;
-        temp->optional_args = (parser_base_arg_t*)help_arg;
+        temp->optional_args = NULL;
         temp->positional_args = NULL;
+
+        _parser_add_arg(temp, (parser_base_arg_t*)help_arg, "--help", NULL);
+        _parser_set_alt((parser_base_arg_t*)help_arg, "-h");
+        _parser_set_help((parser_base_arg_t*)help_arg, "show this help message and exit");
 
         *parser = temp;
         return PARSER_RESULT_OK;
