@@ -16,32 +16,32 @@ extern "C" {
     const int PADDING = 2;
     const int FIRST_COLUMN_SIZE = 24;
 
-    typedef struct {
-        char* keyword;
-        char* keyshort;
-        char* help;
+    typedef struct parser_base_arg_t {
+        char const * keyword;
+        char const * keyshort;
+        char const * help;
         bool is_filled;
-        void (*set_value)(void* element, char* value);
+        void (*set_value)(void* element, char const * value);
         struct parser_base_arg_t* next;
     } parser_base_arg_t;
 
-    typedef struct {
+    typedef struct parser_flag_arg_t {
         parser_base_arg_t base;
     } parser_flag_arg_t;
 
-    typedef struct {
+    typedef struct parser_int_arg_t {
         parser_base_arg_t base;
         int default_value;
         int value;
     } parser_int_arg_t;
 
-    typedef struct {
+    typedef struct parser_string_arg_t {
         parser_base_arg_t base;
-        char* default_value;
-        char* value;
+        char const * default_value;
+        char const * value;
     } parser_string_arg_t;
 
-    typedef struct {
+    typedef struct parser_t {
         int argc;
         char** argv;
 
@@ -54,7 +54,7 @@ extern "C" {
         parser_base_arg_t* positional_args;
     } parser_t;
 
-    typedef enum {
+    typedef enum parser_result_t {
         PARSER_RESULT_OK,
         PARSER_RESULT_HELP,
         PARSER_RESULT_ERROR,
@@ -93,11 +93,11 @@ extern "C" {
         }
     }
 
-    int _parser_append_last_err(parser_t* parser, char* format, ...) {
+    int _parser_append_last_err(parser_t* parser, char const * format, ...) {
         if (parser->last_err == NULL) {
             parser->last_err_pos = 0;
             parser->last_err_size = INITIAL_BUFFER_SIZE;
-            parser->last_err = malloc(sizeof(char) * parser->last_err_size);
+            parser->last_err = (char*)malloc(sizeof(char) * parser->last_err_size);
             parser->last_err[parser->last_err_pos] = '\0';
         }
 
@@ -120,7 +120,7 @@ extern "C" {
                 }
 
                 char* old_buf = parser->last_err;
-                parser->last_err = malloc(sizeof(char) * parser->last_err_size);
+                parser->last_err = (char*)malloc(sizeof(char) * parser->last_err_size);
                 memcpy(parser->last_err, old_buf, parser->last_err_pos);
                 parser->last_err[parser->last_err_pos] = '\0';
                 free(old_buf);
@@ -133,7 +133,7 @@ extern "C" {
     int _parser_append_optional_name(parser_t* parser, parser_base_arg_t* element) {
         int offset = 0;
         if (element->set_value != NULL) {
-            char* name = element->keyword != NULL
+            char const * name = element->keyword != NULL
                 ? &element->keyword[2]
                 : &element->keyshort[1];
 
@@ -256,7 +256,7 @@ extern "C" {
         }
     }
 
-    void _parser_set_alt(parser_base_arg_t* element, char* keyword) {
+    void _parser_set_alt(parser_base_arg_t* element, char const * keyword) {
         if (_parser_prefix("-", keyword) && !_parser_prefix("--", keyword)) {
             element->keyshort = keyword;
         } else {
@@ -268,14 +268,14 @@ extern "C" {
         return element->is_filled;
     }
 
-    void _parser_set_help(parser_base_arg_t* element, char* help) {
+    void _parser_set_help(parser_base_arg_t* element, char const * help) {
         element->help = help;
     }
 
     void _parser_add_arg(parser_t* parser,
                          parser_base_arg_t* element,
-                         char* keyword,
-                         void (*set_value)(void*, char*)) {
+                         char const * keyword,
+                         void (*set_value)(void*, char const *)) {
         element->keyshort = NULL;
         element->keyword = NULL;
         element->help = NULL;
@@ -408,7 +408,7 @@ extern "C" {
 
 
 
-    parser_result_t parser_flag_add_arg(parser_t* parser, parser_flag_arg_t** arg, char* keyword) {
+    parser_result_t parser_flag_add_arg(parser_t* parser, parser_flag_arg_t** arg, char const * keyword) {
         parser_flag_arg_t* temp = (parser_flag_arg_t*)malloc(sizeof(parser_flag_arg_t));
         if (temp == NULL) {
             return PARSER_RESULT_ERROR;
@@ -424,22 +424,22 @@ extern "C" {
         return _parser_is_filled((parser_base_arg_t*)arg);
     }
 
-    void parser_flag_set_alt(parser_flag_arg_t* arg, char* alt) {
+    void parser_flag_set_alt(parser_flag_arg_t* arg, char const * alt) {
         _parser_set_alt((parser_base_arg_t*)arg, alt);
     }
 
-    void parser_flag_set_help(parser_flag_arg_t* arg, char* help) {
+    void parser_flag_set_help(parser_flag_arg_t* arg, char const * help) {
         _parser_set_help((parser_base_arg_t*)arg, help);
     }
 
 
 
-    void _parser_set_int_value(void* element, char* value) {
+    void _parser_set_int_value(void* element, char const * value) {
         char* end_ptr;
         ((parser_int_arg_t*)element)->value = strtol(value, &end_ptr, 10);
     }
 
-    parser_result_t parser_int_add_arg(parser_t* parser, parser_int_arg_t** arg, char* keyword) {
+    parser_result_t parser_int_add_arg(parser_t* parser, parser_int_arg_t** arg, char const * keyword) {
         parser_int_arg_t* temp = (parser_int_arg_t*)malloc(sizeof(parser_int_arg_t));
         if (temp == NULL) {
             return PARSER_RESULT_ERROR;
@@ -464,11 +464,11 @@ extern "C" {
         return _parser_is_filled((parser_base_arg_t*)arg);
     }
 
-    void parser_int_set_alt(parser_int_arg_t* arg, char* alt) {
+    void parser_int_set_alt(parser_int_arg_t* arg, char const * alt) {
         _parser_set_alt((parser_base_arg_t*)arg, alt);
     }
 
-    void parser_int_set_help(parser_int_arg_t* arg, char* help) {
+    void parser_int_set_help(parser_int_arg_t* arg, char const * help) {
         _parser_set_help((parser_base_arg_t*)arg, help);
     }
 
@@ -478,11 +478,11 @@ extern "C" {
 
 
 
-    void _parser_set_string_value(void* element, char* value) {
+    void _parser_set_string_value(void* element, char const * value) {
         ((parser_string_arg_t*)element)->value = value;
     }
 
-    parser_result_t parser_string_add_arg(parser_t* parser, parser_string_arg_t** arg, char* keyword) {
+    parser_result_t parser_string_add_arg(parser_t* parser, parser_string_arg_t** arg, char const * keyword) {
         parser_string_arg_t* temp = (parser_string_arg_t*)malloc(sizeof(parser_string_arg_t));
         if (temp == NULL) {
             return PARSER_RESULT_ERROR;
@@ -507,15 +507,15 @@ extern "C" {
         return _parser_is_filled((parser_base_arg_t*)arg);
     }
 
-    void parser_string_set_alt(parser_string_arg_t* arg, char* alt) {
+    void parser_string_set_alt(parser_string_arg_t* arg, char const * alt) {
         _parser_set_alt((parser_base_arg_t*)arg, alt);
     }
 
-    void parser_string_set_help(parser_string_arg_t* arg, char* help) {
+    void parser_string_set_help(parser_string_arg_t* arg, char const * help) {
         _parser_set_help((parser_base_arg_t*)arg, help);
     }
 
-    void parser_string_set_default(parser_string_arg_t* arg, char* default_value) {
+    void parser_string_set_default(parser_string_arg_t* arg, char const * default_value) {
         arg->default_value = default_value;
     }
 
