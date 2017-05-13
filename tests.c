@@ -170,6 +170,20 @@ void test_Parser_OnlyPositionalAndLongArgs() {
     parser_free(&parser);
 }
 
+void test_Parser_DashedArgs() {
+    parser_t* parser;
+    parser_string_arg_t* input_arg;
+    parser_string_arg_t* opt_str_arg;
+    char* args[] = { "exename", "-", "--second", "-" };
+
+    init_parser(&parser, &input_arg, NULL, NULL, &opt_str_arg, true, false);
+    TEST_ASSERT_EQUAL_UINT(PARSER_RESULT_OK, parser_parse(parser, 4, args));
+    TEST_ASSERT_EQUAL_STRING("-", parser_string_get_value(input_arg));
+    TEST_ASSERT_TRUE(parser_string_is_filled(opt_str_arg));
+    TEST_ASSERT_EQUAL_STRING("-", parser_string_get_value(opt_str_arg));
+    parser_free(&parser);
+}
+
 void test_OnlyPositionalParser_OnlyPositionalArgs() {
     parser_t* parser;
     parser_string_arg_t* input_arg;
@@ -205,6 +219,7 @@ int main(int argc, char** argv)
     RUN_TEST(test_Parser_OnlyPositionalAndShortArgsAfter);
     RUN_TEST(test_Parser_OnlyPositionalAndShortArgsBefore);
     RUN_TEST(test_Parser_OnlyPositionalAndLongArgs);
+    RUN_TEST(test_Parser_DashedArgs);
     RUN_TEST(test_OnlyPositionalParser_OnlyPositionalArgs);
     RUN_TEST(test_OnlyOptionalParser_WithoutArgs);
 

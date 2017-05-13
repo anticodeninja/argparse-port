@@ -351,7 +351,7 @@ extern "C" {
                 continue;
             }
 
-            if (_parser_prefix("-", argv[i])) {
+            if (strlen(argv[i]) > 1 && _parser_prefix("-", argv[i])) {
                 if (_parser_prefix("--", argv[i])) {
                     current_optional = parser->optional_args;
                     while (current_optional != NULL) {
