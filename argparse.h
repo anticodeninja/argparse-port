@@ -377,6 +377,7 @@ extern "C" {
 
                 if (current_optional->set_value == NULL) {
                     current_optional->is_filled = true;
+                    current_optional = NULL;
                 }
 
                 continue;
